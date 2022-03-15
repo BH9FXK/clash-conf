@@ -1,0 +1,195 @@
+# port of HTTP
+port: 7890
+
+# port of SOCKS5
+socks-port: 7891
+
+# (HTTP and SOCKS5 in one port)
+# mixed-port: 7890
+
+# redir port for Linux and macOS
+redir-port: 7892
+
+allow-lan: true
+mode: rule
+log-level: warning
+external-controller: 0.0.0.0:9090
+
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:1053
+    #enhanced-mode: fake-ip
+  enhanced-mode: redir-host
+    #fake-ip-range: 198.18.0.1/16 # Fake IP addresses pool CIDR
+    #  default-nameserver:
+    #    - 223.5.5.5
+    #    - 119.29.29.29
+  nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  fallback:
+    - tls://8.8.8.8:853
+    - tls://8.8.4.4:853
+      #- tls://1.1.1.1:853
+      #- tcp://1.1.1.1:53
+    - tcp://208.67.222.222:443
+      #- tls://dns.google
+    - https://1.1.1.1/dns-query
+
+proxy-providers:
+
+  provider1:
+    type: http
+    url: "http://121.37.67.232/clash/proxies"
+    interval: 3600
+    path: /home/bh9fxk/clash/provider1.yaml
+    health-check:
+      enable: true
+      interval: 600
+  # lazy: true
+      url: http://www.google.com/generate_204
+
+  provider2:
+    type: http
+    url: "http://158.101.93.192/clash/proxies"
+    interval: 3600
+    path: /home/bh9fxk/clash/provider2.yaml
+    health-check:
+      enable: true
+      interval: 600
+      # lazy: true
+      url: http://www.google.com/generate_204
+
+  provider3:
+    type: http
+    url: "http://149.248.8.112/clash/proxies"
+    interval: 3600
+    path: /home/bh9fxk/clash/provider3.yaml
+    health-check:
+      enable: true
+      interval: 600
+      # lazy: true
+      url: http://www.google.com/generate_204
+
+  provider4:
+    type: http
+    url: "http://118.31.77.3/clash/proxies"
+    interval: 3600
+    path: /home/bh9fxk/clash/provider4.yaml
+    health-check:
+      enable: true
+      interval: 600
+      # lazy: true
+      url: http://www.google.com/generate_204
+   
+  provider5:
+    type: http
+    url: "http://42.194.196.226/clash/proxies"
+    interval: 3600
+    path: /home/bh9fxk/clash/provider5.yaml
+    health-check:
+      enable: true
+      interval: 600
+      # lazy: true
+      url: http://www.google.com/generate_204
+
+  provider6:
+    type: http
+    url: "http://192.168.31.157:12580/clash/proxies"
+    interval: 3600
+    path: /home/bh9fxk/clash/provider6.yaml
+    health-check:
+      enable: true
+      interval: 600
+      # lazy: true
+      url: http://www.google.com/generate_204
+
+proxy-groups:
+  - name: GLOBAL
+    type: select
+    proxies:
+     - 延迟最低
+     - 失败切换
+     - 手动选择
+     - 负载均衡
+
+  - name: 失败切换
+    type: fallback
+    use:
+      - provider1
+      - provider2
+      - provider3
+      - provider4
+      - provider5
+      - provider6
+    url: 'http://www.google.com/generate_204'
+    interval: 300
+
+  - name: 手动选择
+    type: select
+    use:
+      - provider1
+      - provider2
+      - provider3
+      - provider4
+      - provider5
+      - provider6
+
+  - name: 延迟最低
+    type: url-test
+    use:
+      - provider1
+      - provider2
+      - provider3
+      - provider4
+      - provider5
+      - provider6
+    url: 'http://www.google.com/generate_204'
+    interval: 300
+
+  - name: 负载均衡
+    type: load-balance
+    use:
+      - provider1
+      - provider2
+      - provider3
+      - provider4
+      - provider5
+      - provider6
+    url: 'http://www.google.com/generate_204'
+    interval: 300
+
+rules:
+  - DOMAIN-SUFFIX,smtp,DIRECT,no-resolve
+  - DOMAIN-KEYWORD,aria2,DIRECT,no-resolve
+
+    #直通的国外地址
+  - DOMAIN,aprs.tv,DIRECT
+    #- DOMAIN-SUFFIX,aprs.tv,DIRECT
+  - DST-PORT,14501,DIRECT
+  - DOMAIN-SUFFIX,gov.cn,DIRECT
+  - DOMAIN-SUFFIX,org.cn,DIRECT
+  - DOMAIN-SUFFIX,ngrok.io,DIRECT
+  - DOMAIN-SUFFIX,live.com,DIRECT
+  - DOMAIN-SUFFIX,microsoft.com,DIRECT
+  - DOMAIN-SUFFIX,windows.com,DIRECT
+  - DOMAIN-SUFFIX,office.com,DIRECT
+  - DOMAIN-SUFFIX,outlook.com,DIRECT
+  - DOMAIN-SUFFIX,bing.com,DIRECT
+
+    #保留地址
+  - DOMAIN-SUFFIX,local,DIRECT
+  - IP-CIDR,192.168.0.0/16,DIRECT,no-resolve
+  - IP-CIDR,10.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+  - IP-CIDR,100.64.0.0/10,DIRECT,no-resolve
+    #  - IP-CIDR6,::1/128,DIRECT,no-resolve
+    #  - IP-CIDR6,fc00::/7,DIRECT,no-resolve
+    #  - IP-CIDR6,fe80::/10,DIRECT,no-resolve
+    #  - IP-CIDR6,fd00::/8,DIRECT,no-resolve
+
+  - GEOIP,CN,DIRECT
+
+  - MATCH,GLOBAL
